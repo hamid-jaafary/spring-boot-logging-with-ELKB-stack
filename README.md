@@ -222,11 +222,11 @@ explanation of parameters
 
 <details>
 <summary><h2>Acknowledgment</h2></summary>
-When I first started learning about setting up centralized logging with the ELK stack, I found it quite challenging, especially when trying to configure a TLS-enabled ELK stack in single-node mode. That's when I came across the original article[^6].
+When I first started learning about setting up centralized logging with the ELK stack, I found it quite challenging, especially when trying to configure a TLS-enabled ELK stack in single-node mode. That's when I came across the original article.
 
 I want to express my gratitude to the original author, paranerd, for the generosity in sharing the knowledge and expertise. The article not only provided me with insights but also saved me considerable time and effort. Thanks a MILLION for sharing knowledge with the community!
 
-While I've summarized key concepts here, added spring-boot configs and extracted environments to separate env files, I highly recommend exploring the [original article](https://thegermancoder.com/2023/06/02/docker-logging-with-elasticsearch-logstash-and-kibana-8-x) for a deeper understanding of the subject.
+While I've summarized key concepts here, added spring-boot configs and extracted environments to separate env files, I highly recommend exploring the original article[^6] for a deeper understanding of the subject.
 </details>
 
 I hope this material has been informative and helpful in your journey towards implementing centralized logging in your spring boot projects.
