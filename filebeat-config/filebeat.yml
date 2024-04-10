@@ -1,0 +1,65 @@
+filebeat.config:
+  modules:
+    path: ${path.config}/modules.d/*.yml
+    reload.enabled: false
+
+filebeat.inputs:
+# - type: container
+#   id: default-container
+#   enabled: false
+#   paths: 
+#     - '/var/lib/docker/containers/*/*.log'
+- type: filestream
+  id: default-filestream-id
+  enabled: true
+  paths:
+    - /usr/share/filebeat/ingest_data/*.log.json
+
+#filebeat.autodiscover:
+#  providers:
+#    - type: docker
+#      hints.enabled: true
+
+processors:
+  - decode_json_fields:
+      fields: ["@timestamp", "@version", "message", "logger_name", "thread_name", "level", "level_value", "stack_trace", "tags", "spanId", "traceId"]
+      process_array: false
+      max_depth: 1
+      target: "logFileJson"
+      overwrite_keys: false
+      add_error_key: true
+#  - add_cloud_metadata: ~
+#  - add_docker_metadata: ~
+#       host: "unix:///var/run/docker.sock"
+
+output.logstash:
+  enabled: true
+  hosts: ["${ELK_DOMAIN_FOR_FB}:${LOGSTASH_BEATS_PORT}"]
+  ssl.enabled: true
+  ssl.verification_mode: certificate
+  ssl.certificate_authorities: ["config/certs/ca/ca.crt"]
+  ssl.certificate: "config/certs/es01/es01.crt"
+  ssl.key: "config/certs/es01/es01.key"
+
+output.elasticsearch:
+  enabled: false
+  hosts: ["${ELK_DOMAIN_FOR_FB}:${ES_PORT}"]
+  protocol: "https"
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
+  ssl.enabled: true
+  ssl.verification_mode: certificate
+  ssl.certificate_authorities: ["config/certs/ca/ca.crt"]
+  ssl.certificate: "config/certs/es01/es01.crt"
+  ssl.key: "config/certs/es01/es01.key"
+
+setup.kibana:
+  host: "${ELK_DOMAIN_FOR_FB}:${KIBANA_PORT}"
+  protocol: "https"
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
+  ssl.enabled: true
+  ssl.verification_mode: certificate
+  ssl.certificate_authorities: ["config/certs/ca/ca.crt"]
+  ssl.certificate: "config/certs/es01/es01.crt"
+  ssl.key: "config/certs/es01/es01.key"

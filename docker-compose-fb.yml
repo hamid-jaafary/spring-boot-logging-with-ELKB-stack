@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:${STACK_VERSION}
+    container_name: filebeat
+    user: "root"
+    env_file:
+      - .env
+    volumes:
+      - "./certs:/usr/share/filebeat/config/certs"
+      - "./filebeat-config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro"
+      - "filebeatdata01:/usr/share/filebeat/data"
+      - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./filebeat_ingest_data/:/usr/share/filebeat/ingest_data/"
+    # mem_limit: "${FB_MEM_LIMIT}"
+    restart: unless-stopped
+volumes:
+  filebeatdata01:
