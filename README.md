@@ -229,6 +229,8 @@ I want to express my gratitude to the original author, paranerd, for the generos
 While I've summarized key concepts here, added spring-boot configs and extracted environments to separate env files, I highly recommend exploring the original article[^6] for a deeper understanding of the subject.
 </details>
 
+<hr/>
+
 I hope this material has been informative and helpful in your journey towards implementing centralized logging in your spring boot projects.
 
 Thank you for your attention and happy logging!
@@ -238,4 +240,4 @@ Thank you for your attention and happy logging!
 [^3]: https://github.com/spring-projects/spring-boot/tree/v2.7.7/spring-boot-project/spring-boot/src/main/resources/org/springframework/boot/logging/logback
 [^4]: https://www.elastic.co/guide/en/beats/filebeat/8.12/decode-json-fields.html
 [^5]: https://github.com/liangyanfeng/logstash-logback-encoder/blob/master/README.md
-[^6]: https://thegermancoder.com/2023/06/02/docker-logging-with-elasticsearch-logstash-and-kibana-8-x
+[^6]: https://thegermancoder.com/blog/2023/06/02/docker-logging-with-elasticsearch-logstash-and-kibana-8.x/
