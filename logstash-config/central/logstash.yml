@@ -12,7 +12,6 @@
 #   pipeline.batch.size: 125
 #   pipeline.batch.delay: 5
 #
-api.http.host: 0.0.0.0
 # ------------  Node identity ------------
 #
 # Use a descriptive name for the node:
@@ -49,6 +48,22 @@ node.name: logstashCentral
 # before dispatching an undersized batch to filters+outputs
 #
 # pipeline.batch.delay: 50
+#
+# Controls when output batches are split into smaller chunks. When the event count of a batch
+# increases by this multiplication factor by the end of the pipeline's filter section, it is
+# chunked based on the value of `pipeline.batch.size`. For example: a batch size of 50 that grows
+# to over 50,000 events (1000x50=50,000) will be sent to outputs 50 events at a time instead of a
+# single enormous batch. Useful when batch size grows unpredictably due to filter plugins such
+# as split or clone.
+# Default is 1000 (effectively disabled). Set to a lower value to enable chunking.
+#
+# pipeline.batch.output_chunking.growth_threshold_factor: 1000
+#
+# Set the pipeline's batch metrics reporting mode. It can be "disabled" to disable it.
+# "minimal" to collect only 1% of the batches metrics, "full" to collect all batches.
+# Default is "minimal".
+#
+# pipeline.batch.metrics.sampling_mode: "minimal"
 #
 # Force Logstash to exit during shutdown even if there are still inflight
 # events in memory. By default, logstash will refuse to quit until all
@@ -107,6 +122,23 @@ node.name: logstashCentral
 #
 # config.reload.interval: 3s
 #
+# Whether to allow the pipeline reload feature to recover a pipeline that has crashed.
+# Requires `config.reload.automatic`. Pipeline cannot include non-reloadable plugins.
+# Accepts one of the following values:
+# - `false` (default): never recover after observing crash
+# - `auto`: recover if-and-only-if `queue.type` is set to `persisted`
+# - `true`: always recover after observing crash (WARNING: risk of data loss)
+#
+# pipeline.recoverable: false
+#
+# Whether to automatically reload pipelines when SSL certificate or key files
+# referenced by pipeline configurations change on disk.
+# Requires `config.reload.automatic: true` (or Centralized Pipeline Management).
+# When enabled, Logstash watches referenced SSL files and triggers a pipeline
+# reload on change, which may increase inotify watch usage.
+#
+# ssl.reload.automatic: false
+#
 # Show fully compiled configuration as debug log message
 # NOTE: --log.level must be 'debug'
 #
@@ -131,7 +163,7 @@ node.name: logstashCentral
 # When secured with SSL and Basic Auth, the API is bound to _all_ interfaces
 # unless configured otherwise.
 #
-# api.http.host: 127.0.0.1
+api.http.host: 0.0.0.0
 #
 # The HTTP API web server will listen on an available port from the given range.
 # Values can be specified as a single port (e.g., `9600`), or an inclusive range
@@ -182,38 +214,6 @@ node.name: logstashCentral
 #
 # api.auth.basic.password_policy.mode: WARN
 #
-# ------------ Module Settings ---------------
-# Define modules here.  Modules definitions must be defined as an array.
-# The simple way to see this is to prepend each `name` with a `-`, and keep
-# all associated variables under the `name` they are associated with, and
-# above the next, like this:
-#
-# modules:
-#   - name: MODULE_NAME
-#     var.PLUGINTYPE1.PLUGINNAME1.KEY1: VALUE
-#     var.PLUGINTYPE1.PLUGINNAME1.KEY2: VALUE
-#     var.PLUGINTYPE2.PLUGINNAME1.KEY1: VALUE
-#     var.PLUGINTYPE3.PLUGINNAME3.KEY1: VALUE
-#
-# Module variable names must be in the format of
-#
-# var.PLUGIN_TYPE.PLUGIN_NAME.KEY
-#
-# modules:
-#
-# ------------ Cloud Settings ---------------
-# Define Elastic Cloud settings here.
-# Format of cloud.id is a base64 value e.g. dXMtZWFzdC0xLmF3cy5mb3VuZC5pbyRub3RhcmVhbCRpZGVudGlmaWVy
-# and it may have an label prefix e.g. staging:dXMtZ...
-# This will overwrite 'var.elasticsearch.hosts' and 'var.kibana.host'
-# cloud.id: <identifier>
-#
-# Format of cloud.auth is: <user>:<pass>
-# This is optional
-# If supplied this will overwrite 'var.elasticsearch.username' and 'var.elasticsearch.password'
-# If supplied this will overwrite 'var.kibana.username' and 'var.kibana.password'
-# cloud.auth: elastic:<password>
-#
 # ------------ Queuing Settings --------------
 #
 # Internal queuing model, "memory" for legacy in-memory based queuing and
@@ -256,10 +256,10 @@ node.name: logstashCentral
 #
 # queue.checkpoint.writes: 1024
 #
-# If using queue.type: persisted, the interval in milliseconds when a checkpoint is forced on the head page
-# Default is 1000, 0 for no periodic checkpoint.
+# If using queue.type: persisted, the compression goal. Valid values are `none`, `speed`, `balanced`, and `size`.
+# The default `none` is able to decompress previously-written events, even if they were compressed.
 #
-# queue.checkpoint.interval: 1000
+# queue.compression: none
 #
 # ------------ Dead-Letter Queue Settings --------------
 # Flag to turn on dead-letter queue.
@@ -278,6 +278,14 @@ node.name: logstashCentral
 # Default is 5000.
 #
 # dead_letter_queue.flush_interval: 5000
+
+# If using dead_letter_queue.enable: true, the interval in milliseconds that the DLQ scheduler checks for stale segments
+# to be flushed. A smaller value ensures faster segment rotation at the cost of CPU with more frequent scheduler runs.
+# A larger value reduces scheduler overhead but may delay segment sealing.
+# Minimum value is 1000 and cannot be greater than dead_letter_queue.flush_interval.
+# Default is 1000.
+#
+# dead_letter_queue.flush_check_interval: 1000
 
 # If using dead_letter_queue.enable: true, controls which entries should be dropped to avoid exceeding the size limit.
 # Set the value to `drop_newer` (default) to stop accepting new events that would push the DLQ size over the limit.
@@ -299,6 +307,65 @@ node.name: logstashCentral
 #
 # path.dead_letter_queue:
 #
+# ------------ OpenTelemetry Metrics Settings --------------
+# Export Logstash metrics to an OpenTelemetry-compatible backend via OTLP.
+# This allows you to send Logstash metrics to any OTLP-compatible collector
+# or monitoring platform (e.g., Prometheus via OTLP receiver, Elastic, Grafana Cloud).
+#
+# System properties take precedence over logstash.yml settings.
+# Use -D<property>=<value> to set system properties (e.g., -Dotel.service.name=my-logstash).
+#
+# Enable OpenTelemetry metrics export (default: false)
+#
+# otel.metrics.enabled: false
+#
+# OTLP metrics endpoint URL (default: "http://localhost:4317").
+# For gRPC, typically port 4317. For HTTP, typically port 4318.
+# System property: otel.exporter.otlp.endpoint
+#
+# otel.exporter.otlp.endpoint: "http://localhost:4317"
+#
+# Export interval with time unit, e.g., "10s", "1m" (default: "10s")
+# System property: otel.metric.export.interval
+#
+# otel.metric.export.interval: "10s"
+#
+# Protocol to use for OTLP export: "grpc" (default) or "http"
+# System property: otel.exporter.otlp.protocol
+#
+# otel.exporter.otlp.protocol: "grpc"
+#
+# HTTP headers as comma-separated key=value pairs to include in every OTLP request.
+# Examples: "Authorization=ApiKey xxx" or "Authorization=Bearer xxx,X-Custom=foo"
+# System property: otel.exporter.otlp.headers
+#
+# otel.exporter.otlp.headers:
+#
+# Additional resource attributes as comma-separated key=value pairs.
+# These are attached to all exported metrics to identify this Logstash instance.
+# Example: "environment=production,cluster=us-west,team=platform"
+# System property: otel.resource.attributes
+#
+# otel.resource.attributes:
+#
+# Service name for metrics (default: "logstash").
+# System property: otel.service.name
+#
+# otel.service.name: "logstash"
+#
+# Path to a PEM-encoded trusted CA certificate for verifying the OTLP endpoint's TLS certificate.
+# Required when the endpoint uses a self-signed or private CA certificate.
+# System property: otel.exporter.otlp.certificate
+#
+# otel.exporter.otlp.certificate:
+#
+# Paths to a PEM-encoded client private key and certificate for mutual TLS (mTLS).
+# Both must be set together. System properties: otel.exporter.otlp.client.key
+# and otel.exporter.otlp.client.certificate
+#
+# otel.exporter.otlp.client.key:
+# otel.exporter.otlp.client.certificate:
+#
 # ------------ Debugging Settings --------------
 #
 # Options for log.level:
@@ -308,13 +375,20 @@ node.name: logstashCentral
 #   * info (default)
 #   * debug
 #   * trace
-#
 # log.level: info
+#
+# Options for log.format:
+#   * plain (default)
+#   * json
+#
+# log.format: plain
+# log.format.json.fix_duplicate_message_fields: true
+#
 # path.logs:
 #
 # ------------ Other Settings --------------
 #
-# Allow or block running Logstash as superuser (default: true)
+# Allow or block running Logstash as superuser (default: false). Windows are excluded from the checking
 # allow_superuser: false
 #
 # Where to find custom plugins
@@ -324,10 +398,16 @@ node.name: logstashCentral
 # Default is false
 # pipeline.separate_logs: false
 #
+# Determine where to allocate memory buffers, for plugins that leverage them.
+# Defaults to heap,but can be switched to direct if you prefer using direct memory space instead.
+# pipeline.buffer.type: heap
+#
 # ------------ X-Pack Settings (not applicable for OSS build)--------------
 #
 # X-Pack Monitoring
 # https://www.elastic.co/guide/en/logstash/current/monitoring-logstash.html
+# Flag to allow the legacy internal monitoring (default: false)
+#xpack.monitoring.allow_legacy_collection: false
 xpack.monitoring.enabled: false
 #xpack.monitoring.elasticsearch.username: logstash_system
 #xpack.monitoring.elasticsearch.password: password
