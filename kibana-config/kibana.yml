@@ -164,10 +164,6 @@ xpack.security.secureCookies: true
 # =============== Encrypted saved objects settings ==============
 xpack.encryptedSavedObjects.encryptionKey: "something_at_least_32_characters_saved_objects"
 
-# ================= Monitoring collection settings ================
-xpack.monitoring.enabled: false
-xpack.monitoring.collection.enabled: false
-
 # ================ Monitoring UI container settings ===============
 monitoring.ui.container.elasticsearch.enabled: false
 
