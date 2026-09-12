@@ -1,6 +1,6 @@
 services:
   filebeat:
-    image: docker.elastic.co/beats/filebeat:${STACK_VERSION}
+    image: elastic/filebeat:${STACK_VERSION}
     container_name: filebeat
     user: "root"
     env_file:
