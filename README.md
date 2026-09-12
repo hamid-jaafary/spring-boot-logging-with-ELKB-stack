@@ -1,4 +1,4 @@
-# Spring Boot Logging with ELK-B Stack v8.12.0
+# Spring Boot Logging with ELK-B Stack v9.5.3
 
 **A comprehensive guide to leverage the power of ELK-B Stack for centralized log management.**
 
@@ -235,9 +235,9 @@ I hope this material has been informative and helpful in your journey towards im
 
 Thank you for your attention and happy logging!
 
-[^1]: https://www.elastic.co/guide/en/beats/filebeat/8.12/load-kibana-dashboards.html
+[^1]: https://www.elastic.co/docs/reference/beats/filebeat/load-kibana-dashboards
 [^2]: https://docs.spring.io/spring-boot/docs/2.7.7/reference/html/dependency-versions.html#appendix.dependency-versions.properties
 [^3]: https://github.com/spring-projects/spring-boot/tree/v2.7.7/spring-boot-project/spring-boot/src/main/resources/org/springframework/boot/logging/logback
-[^4]: https://www.elastic.co/guide/en/beats/filebeat/8.12/decode-json-fields.html
+[^4]: https://www.elastic.co/docs/reference/beats/filebeat/decode-json-fields
 [^5]: https://github.com/liangyanfeng/logstash-logback-encoder/blob/master/README.md
 [^6]: https://thegermancoder.com/blog/2023/06/02/docker-logging-with-elasticsearch-logstash-and-kibana-8.x/
