@@ -156,7 +156,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s -I https://${ELK_DOMAIN}:${KIBANA_PORT} | grep -q 'HTTP/1.1 302 Found'",
+          "curl -s -I --cacert config/certs/ca/ca.crt https://${ELK_DOMAIN}:${KIBANA_PORT} | grep -q 'HTTP/2 302'",
         ]
       interval: 10s
       timeout: 10s
